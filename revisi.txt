@@ -1,0 +1,13 @@
+Revisi untuk index.html
+jangan sentuh file recover.html
+
+- No (Counter) dihitung pertanggal 
+- contoh 1. 01/01/2025 kegiatan keterangan
+                       kegiatan keterangan
+                       kegiatan keterangan   
+         2. 02/01/2025 kegiatan keterangan
+                       kegiatan keterangan
+- pada input tanggal jika  sudah submit(Tambah data) jangan direset/dihapus tapi tetap ada di input nya dan tambahkan button reset untuk hapus tanggal nya agar user tidak perlu mengetik ulang tanggalnya dan ingin ganti tanggal tinggal click pada button reset
+- tambahkan header dengan nama di tabel laporan Paraf
+- kolom paraf kecil saja karena untuk paraf 
+

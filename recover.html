@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Laporan Kegiatan Mingguan</title>
+
+    <!-- Load jsPDF & autotable via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --success: #16a34a;
+            --success-hover: #15803d;
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        /* Layout Utama */
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            gap: 20px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Area Form/Kontrol */
+        .controls {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .controls h2 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        textarea {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+            color: white;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .btn-success:hover {
+            background-color: var(--success-hover);
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Area Pratinjau Kertas A4 */
+        .preview-area {
+            flex: 2;
+            display: flex;
+            justify-content: center;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            padding: 15mm;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Header Laporan */
+        .report-header {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .report-logo {
+            width: 80px;
+            height: auto;
+            margin-right: 20px;
+            object-fit: contain;
+        }
+
+        .report-title-container {
+            flex: 1;
+            text-align: center;
+        }
+
+        .report-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .report-subtitle {
+            font-size: 14pt;
+        }
+
+        .report-meta {
+            margin-bottom: 15px;
+            font-size: 11pt;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Tabel Laporan */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11pt;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .col-no {
+            width: 5%;
+            text-align: center;
+        }
+
+        .col-tgl {
+            width: 15%;
+        }
+
+        .col-keg {
+            width: 35%;
+        }
+
+        .col-ket {
+            width: 35%;
+        }
+
+        .col-act {
+            width: 10%;
+            text-align: center;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        /* Media Print Khusus Cetak */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
+
+            body,
+            .container {
+                background: white;
+                margin: 0;
+                padding: 0;
+                display: block;
+            }
+
+            .no-print,
+            .controls,
+            .col-act {
+                display: none !important;
+            }
+
+            .preview-area {
+                padding: 0;
+                display: block;
+                overflow: visible;
+            }
+
+            .a4-page {
+                box-shadow: none;
+                width: 100%;
+                min-height: auto;
+                margin: 0;
+                padding: 0;
+                /* Padding is handled by @page margin */
+            }
+
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tfoot {
+                display: table-footer-group;
+            }
+        }
+
+        /* Responsif untuk Layar Kecil */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .controls {
+                max-width: 100%;
+                position: static;
+            }
+
+            .a4-page {
+                /* Skala pratinjau agar muat di HP/Tablet */
+                max-width: 100%;
+                height: auto;
+                min-height: auto;
+                padding: 10mm;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Panel Kiri: Form & Kontrol (Sembunyi saat cetak) -->
+        <div class="controls no-print">
+            <h2>Data Pelaksana</h2>
+            <div class="form-group">
+                <label for="inputNama">Nama Pelaksana</label>
+                <input type="text" id="inputNama" placeholder="Masukkan nama...">
+            </div>
+
+            <h2>Tambah Kegiatan</h2>
+            <form id="formKegiatan">
+                <input type="hidden" id="editIndex" value="-1">
+                <div class="form-group">
+                    <label for="inputTanggal">Tanggal</label>
+                    <input type="date" id="inputTanggal" required>
+                </div>
+                <div class="form-group">
+                    <label for="inputKegiatan">Kegiatan</label>
+                    <textarea id="inputKegiatan" rows="2" placeholder="Detail kegiatan..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="inputKeterangan">Keterangan</label>
+                    <textarea id="inputKeterangan" rows="2" placeholder="Keterangan / Hasil..." required></textarea>
+                </div>
+                <button type="submit" class="btn-primary" id="btnSimpan">Tambah Data</button>
+                <button type="button" class="btn-danger" id="btnBatalEdit" style="display: none;">Batal Edit</button>
+            </form>
+
+            <div class="btn-group">
+                <button type="button" class="btn-success" onclick="unduhPDF()">Unduh PDF</button>
+                <button type="button" class="btn-primary" onclick="window.print()">Cetak (Print)</button>
+                <button type="button" class="btn-danger" onclick="resetData()">Reset Semua Data</button>
+            </div>
+        </div>
+
+        <!-- Panel Kanan: Pratinjau Kertas A4 -->
+        <div class="preview-area">
+            <div class="a4-page" id="reportPreview">
+
+                <!-- Header Laporan -->
+                <div class="report-header">
+                    <img src="logo.png" alt="Logo" class="report-logo" onerror="this.style.display='none'">
+                    <div class="report-title-container">
+                        <div class="report-title">PT. Gevita Jaya Mandiri</div>
+                        <div class="report-subtitle">Laporan Kegiatan Mingguan</div>
+                    </div>
+                </div>
+
+                <!-- Meta Info -->
+                <div class="report-meta">
+                    <div><strong>Nama Pelaksana:</strong> <span id="displayNama">-</span></div>
+                    <div><strong>Tanggal Cetak:</strong> <span id="displayTglCetak"></span></div>
+                </div>
+
+                <!-- Tabel Data -->
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th class="col-no">No</th>
+                            <th class="col-tgl">Tanggal</th>
+                            <th class="col-keg">Kegiatan</th>
+                            <th class="col-ket">Keterangan</th>
+                            <th class="col-act no-print">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Baris tabel akan dirender oleh JavaScript -->
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Struktur Data Global (Sesuai dengan format yang diminta)
+        let state = {
+            Nama: "",
+            Laporan: [] // Array objek { Tanggal: "...", Pekerjaan: [ {Kegiatan, Keterangan}, ... ] }
+        };
+
+        // Saat dokumen siap
+        document.addEventListener("DOMContentLoaded", () => {
+            muatData();
+            renderData();
+
+            // Update tanggal cetak hari ini (hanya untuk tampilan di PDF/Layar)
+            const tglHariIni = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            document.getElementById('displayTglCetak').textContent = tglHariIni;
+
+            // Event listener update nama langsung ke preview
+            document.getElementById("inputNama").addEventListener("input", (e) => {
+                state.Nama = e.target.value;
+                document.getElementById("displayNama").textContent = state.Nama || "-";
+                simpanData();
+            });
+
+            // Event handler form submit (Tambah / Edit)
+            document.getElementById("formKegiatan").addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const tanggal = document.getElementById("inputTanggal").value;
+                const kegiatan = document.getElementById("inputKegiatan").value;
+                const keterangan = document.getElementById("inputKeterangan").value;
+                const editIndexStr = document.getElementById("editIndex").value;
+
+                if (!tanggal || !kegiatan || !keterangan) {
+                    alert("Semua field harus diisi!");
+                    return;
+                }
+
+                if (editIndexStr !== "-1") {
+                    // Mode Edit
+                    const indices = editIndexStr.split('-');
+                    const lapIdx = parseInt(indices[0]);
+                    const pekIdx = parseInt(indices[1]);
+
+                    // Cek apakah tanggal diubah. Jika tanggal berubah, pindahkan pekerjaan ke laporan tanggal baru
+                    if (state.Laporan[lapIdx].Tanggal === tanggal) {
+                        // Tanggal sama, update saja data pekerjaannya
+                        state.Laporan[lapIdx].Pekerjaan[pekIdx].Kegiatan = kegiatan;
+                        state.Laporan[lapIdx].Pekerjaan[pekIdx].Keterangan = keterangan;
+                    } else {
+                        // Hapus dari tanggal lama
+                        state.Laporan[lapIdx].Pekerjaan.splice(pekIdx, 1);
+                        // Jika tanggal lama kosong, hapus laporannya
+                        if (state.Laporan[lapIdx].Pekerjaan.length === 0) {
+                            state.Laporan.splice(lapIdx, 1);
+                        }
+                        // Tambahkan ke tanggal baru
+                        tambahPekerjaan(tanggal, kegiatan, keterangan);
+                    }
+
+                    // Reset form state
+                    batalEdit();
+                } else {
+                    // Mode Tambah Baru
+                    tambahPekerjaan(tanggal, kegiatan, keterangan);
+                }
+
+                simpanData();
+                renderData();
+                this.reset(); // Kosongkan input setelah tambah
+            });
+
+            // Handler Batal Edit
+            document.getElementById("btnBatalEdit").addEventListener("click", batalEdit);
+        });
+
+        // Fungsi menambah pekerjaan berdasarkan tanggal
+        function tambahPekerjaan(tanggal, kegiatan, keterangan) {
+            // Cari apakah laporan untuk tanggal ini sudah ada
+            let laporanExist = state.Laporan.find(l => l.Tanggal === tanggal);
+
+            if (laporanExist) {
+                // Jika ada, tambahkan ke array Pekerjaan
+                laporanExist.Pekerjaan.push({ Kegiatan: kegiatan, Keterangan: keterangan });
+            } else {
+                // Jika belum ada, buat objek Laporan baru
+                state.Laporan.push({
+                    Tanggal: tanggal,
+                    Pekerjaan: [
+                        { Kegiatan: kegiatan, Keterangan: keterangan }
+                    ]
+                });
+                // Urutkan laporan berdasarkan tanggal menaik (terlama -> terbaru)
+                state.Laporan.sort((a, b) => new Date(a.Tanggal) - new Date(b.Tanggal));
+            }
+        }
+
+        // Fungsi merender data ke dalam tabel di layar
+        function renderData() {
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+
+            // Update Nama
+            document.getElementById("inputNama").value = state.Nama;
+            document.getElementById("displayNama").textContent = state.Nama || "-";
+
+            if (state.Laporan.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280;">Belum ada data. Silakan tambah kegiatan.</td></tr>`;
+                return;
+            }
+
+            let no = 1;
+            state.Laporan.forEach((laporan, lapIndex) => {
+                laporan.Pekerjaan.forEach((pek, pekIndex) => {
+                    const tr = document.createElement("tr");
+
+                    // Format tanggal menjadi format Indonesia: dd/mm/yyyy
+                    const dateObj = new Date(laporan.Tanggal);
+                    const tglFormat = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
+
+                    tr.innerHTML = `
+                    <td class="col-no">${no}</td>
+                    <!-- Tampilkan tanggal hanya di baris pertama untuk setiap tanggal yang sama -->
+                    <td class="col-tgl">${pekIndex === 0 ? tglFormat : ''}</td>
+                    <td class="col-keg">${pek.Kegiatan.replace(/\n/g, '<br>')}</td>
+                    <td class="col-ket">${pek.Keterangan.replace(/\n/g, '<br>')}</td>
+                    <td class="col-act no-print">
+                        <div class="actions-cell">
+                            <button class="btn-primary btn-small" onclick="editData(${lapIndex}, ${pekIndex})">Edit</button>
+                            <button class="btn-danger btn-small" onclick="hapusData(${lapIndex}, ${pekIndex})">Hapus</button>
+                        </div>
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                    no++;
+                });
+            });
+        }
+
+        // Fungsi menyimpan state ke localStorage
+        function simpanData() {
+            try {
+                localStorage.setItem("laporanState", JSON.stringify(state));
+            } catch (e) {
+                console.error("Gagal menyimpan ke localStorage:", e);
+            }
+        }
+
+        // Fungsi memuat state dari localStorage
+        function muatData() {
+            try {
+                const data = localStorage.getItem("laporanState");
+                if (data) {
+                    state = JSON.parse(data);
+                }
+            } catch (e) {
+                console.error("Gagal memuat dari localStorage:", e);
+            }
+        }
+
+        // Fungsi reset data
+        function resetData() {
+            if (confirm("Apakah Anda yakin ingin menghapus SEMUA data? Aksi ini tidak dapat dibatalkan.")) {
+                state = { Nama: "", Laporan: [] };
+                simpanData();
+                renderData();
+                batalEdit();
+                document.getElementById("formKegiatan").reset();
+                document.getElementById("inputNama").value = "";
+            }
+        }
+
+        // Fungsi menghapus satu data pekerjaan
+        function hapusData(lapIndex, pekIndex) {
+            if (confirm("Hapus kegiatan ini?")) {
+                state.Laporan[lapIndex].Pekerjaan.splice(pekIndex, 1);
+
+                // Jika tidak ada pekerjaan tersisa di tanggal tersebut, hapus laporan tanggalnya
+                if (state.Laporan[lapIndex].Pekerjaan.length === 0) {
+                    state.Laporan.splice(lapIndex, 1);
+                }
+
+                simpanData();
+                renderData();
+            }
+        }
+
+        // Fungsi mode Edit
+        function editData(lapIndex, pekIndex) {
+            const laporan = state.Laporan[lapIndex];
+            const pekerjaan = laporan.Pekerjaan[pekIndex];
+
+            document.getElementById("inputTanggal").value = laporan.Tanggal;
+            document.getElementById("inputKegiatan").value = pekerjaan.Kegiatan;
+            document.getElementById("inputKeterangan").value = pekerjaan.Keterangan;
+
+            // Simpan index gabungan untuk referensi saat disubmit
+            document.getElementById("editIndex").value = `${lapIndex}-${pekIndex}`;
+
+            document.getElementById("btnSimpan").textContent = "Update Data";
+            document.getElementById("btnSimpan").className = "btn-success";
+            document.getElementById("btnBatalEdit").style.display = "block";
+        }
+
+        // Fungsi batal mode Edit
+        function batalEdit() {
+            document.getElementById("editIndex").value = "-1";
+            document.getElementById("formKegiatan").reset();
+            document.getElementById("btnSimpan").textContent = "Tambah Data";
+            document.getElementById("btnSimpan").className = "btn-primary";
+            document.getElementById("btnBatalEdit").style.display = "none";
+        }
+
+        // Fungsi membuat & mengunduh PDF menggunakan jsPDF + AutoTable
+        function unduhPDF() {
+            const { jsPDF } = window.jspdf;
+
+            // Format A4, portrait, unit milimeter
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 15; // 15mm margin
+
+            // -- Render Header --
+            // Gunakan logo jika tersedia dan jika dapat dibaca di canvas (karena cross-origin dsb)
+            // Di sini kita coba render text. Logo bisa menggunakan doc.addImage jika ada base64.
+            // Karena ini pure HTML tanpa server, meload file lokal logo.png ke canvas mungkin terblokir CORS jika langsung dibuka.
+            // Oleh karena itu, di PDF kita tuliskan nama PT secara jelas (jika gagal memuat logo).
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.text("PT. GEVITA JAYA MANDIRI", pageWidth / 2, margin + 5, { align: "center" });
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(14);
+            doc.text("Laporan Kegiatan Mingguan", pageWidth / 2, margin + 12, { align: "center" });
+
+            doc.setLineWidth(0.5);
+            doc.line(margin, margin + 16, pageWidth - margin, margin + 16);
+
+            // Meta data Info
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("Nama Pelaksana:", margin, margin + 25);
+            doc.setFont("helvetica", "normal");
+            doc.text(state.Nama || "-", margin + 35, margin + 25);
+
+            doc.setFont("helvetica", "bold");
+            const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            doc.text("Tanggal Cetak:", pageWidth - margin - 50, margin + 25);
+            doc.setFont("helvetica", "normal");
+            doc.text(todayStr, pageWidth - margin - 15, margin + 25);
+
+            // -- Menyiapkan Data Tabel --
+            const tableColumn = ["No", "Tanggal", "Kegiatan", "Keterangan"];
+            const tableRows = [];
+            let no = 1;
+
+            if (state.Laporan.length === 0) {
+                tableRows.push(["", "Belum ada data", "", ""]);
+            } else {
+                state.Laporan.forEach((laporan) => {
+                    const dateObj = new Date(laporan.Tanggal);
+                    const tglFormat = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
+
+                    laporan.Pekerjaan.forEach((pek, idx) => {
+                        tableRows.push([
+                            no.toString(),
+                            idx === 0 ? tglFormat : "", // Tampilkan tanggal hanya di row pertama
+                            pek.Kegiatan,
+                            pek.Keterangan
+                        ]);
+                        no++;
+                    });
+                });
+            }
+
+            // -- Render Tabel Menggunakan AutoTable --
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: margin + 30, // Mulai setelah header dan meta
+                margin: { top: margin, right: margin, bottom: margin + 10, left: margin },
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [243, 244, 246], // Sesuai warna abu-abu header di HTML
+                    textColor: [0, 0, 0],
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0]
+                },
+                bodyStyles: {
+                    textColor: [31, 41, 55],
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    valign: 'top'
+                },
+                columnStyles: {
+                    0: { halign: 'center', cellWidth: 10 },   // No
+                    1: { cellWidth: 25 },                     // Tanggal
+                    2: { cellWidth: 'auto' },                 // Kegiatan
+                    3: { cellWidth: 'auto' }                  // Keterangan
+                },
+                pageBreak: 'auto', // Handle perpindahan halaman agar baris tidak terpotong (tapi text panjang mungkin saja di-wrap otomatis)
+                rowPageBreak: 'avoid',
+
+                // Footer: Penomoran Halaman di tiap halaman
+                didDrawPage: function (data) {
+                    // Footer
+                    const str = "Halaman " + doc.internal.getNumberOfPages();
+
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    // letakkan di posisi margin bawah
+                    const pageSize = doc.internal.pageSize;
+                    const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+
+                    doc.text(str, pageWidth / 2, pageHeight - margin + 5, { align: "center" });
+                }
+            });
+
+            // Buat nama file dinamis
+            let namaFile = "laporan-kegiatan";
+            if (state.Nama) {
+                namaFile += "-" + state.Nama.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            }
+
+            // Tambah tanggal saat ini ke nama file (misal 2026-10-04)
+            const d = new Date();
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            namaFile += `-${yyyy}-${mm}-${dd}.pdf`;
+
+            // Proses download
+            doc.save(namaFile);
+        }
+    </script>
+
+</body>
+
+</html>

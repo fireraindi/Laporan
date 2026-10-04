@@ -1,0 +1,83 @@
+Buatkan aplikasi web kecil untuk membuat dan mencetak laporan PDF ukuran A4.
+
+## Batasan teknis
+- Pure frontend: HTML, CSS, dan JavaScript vanilla. Tanpa backend, tanpa server, tanpa framework build (tidak perlu Node/npm).
+- Semua kode dalam SATU file `index.html` (CSS dan JS inline) yang bisa dibuka langsung dengan klik dua kali di browser.
+- Library boleh dimuat lewat CDN (cdnjs). Gunakan jsPDF dan jspdf-autotable untuk membuat PDF.
+- Semua data diproses di browser. Tidak ada data yang dikirim ke server.
+- ini akan dihosting menggunakan github jadi pastikan ini berjalan dengan baik jika digunakan di github
+
+## Jenis laporan
+Laporan kegiatan mingguan
+
+## Fitur utama
+1. Form input: [Nama(nama pelaksana),Tanggal, kegiatan, keterangan ] (note satu tanggal bisa memiliki lebih dari satu kegiatan dan keterangan)
+2. Tabel data: tambah, edit, dan hapus baris. 
+3. Pratinjau laporan di layar dengan tampilan seperti kertas A4.
+4. Tombol "Unduh PDF" yang langsung mengunduh file tanpa dialog cetak.
+5. Tombol "Cetak" yang memakai window.print() dengan CSS @media print.
+6. Data tersimpan otomatis di localStorage agar tidak hilang saat halaman ditutup (bungkus dengan try/catch).
+7. Tombol "Reset data".
+8. Satu tanggal bisa memiliki lebih dari satu kegiatan 
+
+## Spesifikasi PDF (A4)
+- Logo perusahaan ada di root folder logo.png
+- Ukuran kertas: A4 (210 x 297 mm), orientasi portrait [atau landscape].
+- Margin: 15 mm di semua sisi.
+- Header: nama perusahaan = PT. Gevita Jaya Mandiri, judul laporan = Laporan kegiatan mingguan, Nama Pelaksana(diambil dari input nama pelaksana)
+- Tabel: No(nomor urut, auto generate (counter)), Tanggal(diambil dari input tanggal), Kegiatan(diambil dari input kegiatan), Keterangan(diambil dari input keterangan) (note satu tanggal bisa memiliki lebih dari satu kegiatan dan keterangan).
+- Jika data lebih dari satu halaman: header tabel diulang di tiap halaman dan baris tidak terpotong di tengah.
+- Footer: nomor halaman "Halaman X dari Y".
+- Font standar yang rapi (Helvetica/Arial), ukuran isi 10-11 pt.
+
+## CSS cetak
+- Gunakan @page { size: A4; margin: 15mm; }
+- Sembunyikan form dan tombol saat mencetak (class .no-print).
+- Pratinjau di layar berukuran 210mm x 297mm, berlatar putih dengan bayangan, di tengah halaman.
+
+## Antarmuka
+- Bahasa antarmuka: Bahasa Indonesia.
+- Tampilan bersih dan modern, responsif (nyaman di laptop dan HP).
+- Validasi input (tidak boleh kosong, angka tidak boleh negatif) dengan pesan error yang jelas.
+- Beri nama file PDF otomatis, contoh: laporan-penjualan-2026-10-04.pdf
+- hasil pdf nya dibuat rapi dan bagus buat 
+- Logo perusahaan ada di root folder logo.png
+
+## Hasil yang diharapkan
+- Satu file index.html lengkap dan siap dijalankan.
+- Beri komentar singkat pada bagian kode penting.
+- Setelah selesai, jelaskan singkat cara memakai dan cara mengubah isi laporan (misalnya menambah kolom) di README.md dan di dalam kode html.
+- Uji kasus data banyak (lebih dari 50 baris) untuk memastikan pemisahan halaman rapi.
+
+bentuk data yang diingin kan adalah seperti ini (ini hanyalah contoh):
+{
+    Nama: "John Doe",
+    Laporan:[
+        {
+            Tanggal:"2026-10-04",
+            Pekerjaan:[
+                {
+                    Kegiatan:"Kegiatan 1",
+                    Keterangan:"Keterangan 1"
+                },
+                {
+                    Kegiatan:"Kegiatan 2",
+                    Keterangan:"Keterangan 2"
+                }
+            ]   
+    },
+        {
+            Tanggal:"2026-10-05",
+            Pekerjaan:[
+                {
+                    Kegiatan:"Kegiatan 3",
+                    Keterangan:"Keterangan 3"
+                },
+                {
+                    Kegiatan:"Kegiatan 4",
+                    Keterangan:"Keterangan 4"
+                }
+            ]   
+        }
+    ]
+}
